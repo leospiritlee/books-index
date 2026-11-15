@@ -17,16 +17,28 @@
 
 ## 如何更新
 
-索引由本地 `book-upload/build_index.py` 生成。新增书后执行：
+新增书后只跑一条命令：
 
 ```bash
-cd book-upload
-python3 build_index.py                 # 重新生成 out/books-index.html
-cp out/books-index.html nav-site/index.html
-cd nav-site && git add -A && git commit -m "chore: refresh index" && git push
+python3 book-upload/sync_nav.py
 ```
 
-或用仓库自带的一键脚本：`python3 book-upload/sync_nav.py`
+它会：重新生成索引 → 拷贝进本仓库 → 有变化才 commit + push →
+**顺带检查并修复个人主页的「书站导航」入口**。
+
+主页 `leospiritlee.github.io` 是 Hexo 生成的静态产物，重新 `hexo generate`
+会把入口链接冲掉。`patch_home_nav.py` 是幂等的（重复跑无副作用），能从索引
+自动读出书站数量修正 `(47)` 这个数字，所以覆盖后跑一次 `sync_nav.py` 即可恢复。
+
+常用开关：
+
+| 命令 | 作用 |
+|---|---|
+| `sync_nav.py` | 完整流程（含修复主页） |
+| `sync_nav.py --no-push` | 只重建并拷贝，纯本地、不碰远端 |
+| `sync_nav.py --no-home` | 跳过主页修复 |
+| `patch_home_nav.py` | 只体检主页链接（dry-run，不写入） |
+| `patch_home_nav.py --apply` | 只修复主页链接 |
 
 Pages 首次构建约 30–90 秒。
 
